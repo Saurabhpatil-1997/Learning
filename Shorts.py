@@ -87,6 +87,43 @@ else:
 demographic_df['Year'] = f'{start_year}-{end_year}'
 
 
+#-----------------------------------------------------------------------------------------
+#SFTP to azure blob
+
+#dependency 
+import pysftp
+from azure.storage.blob import BlobServiceClient
+
+# SFTP configuration
+sftp_host = 'your_sftp_host'
+sftp_username = 'your_sftp_username'
+sftp_password = 'your_sftp_password'
+sftp_file_path = '/path/to/your/file.txt'
+local_file_path = 'file.txt'  # Temporary local file path
+
+# Azure Blob Storage configuration
+connection_string = 'your_azure_connection_string'
+container_name = 'your_container_name'
+blob_name = 'file.txt'  # Name in Azure Blob
+
+# Step 1: Download file from SFTP
+with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password) as sftp:
+    sftp.get(sftp_file_path, local_file_path)
+    print(f'Downloaded {sftp_file_path} from SFTP to {local_file_path}')
+
+# Step 2: Upload file to Azure Blob Storage
+blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+with open(local_file_path, 'rb') as data:
+    blob_client.upload_blob(data, overwrite=True)
+    print(f'Uploaded {local_file_path} to Azure Blob Storage as {blob_name}')
+
+# Clean up: Optionally, delete the local file after uploading
+import os
+os.remove(local_file_path)
+print(f'Removed temporary file {local_file_path}')
+
 
 
 
